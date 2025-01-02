@@ -12,23 +12,30 @@ export class DockerEngine implements IEngine {
       headers: {
         'Content-Type': 'application/json',
       },
+      timeout: 30000,
     })
   }
   async reload(): Promise<string> {
+    console.log('reload 111')
     const container_id = await this.getContainerId(this.container_name)
+    console.log(`reload 222 ${container_id}`)
     if (container_id) {
       try {
+        console.log(`reload 222 cont reload`)
         const resp = await this.docker(
           `/containers/${container_id}/kill?signal=SIGHUP`,
           {
             method: 'POST',
           }
         )
+        console.log(`reload 333`)
+        console.log(`reload 333 ${resp}`)
         if (resp.status === 204) {
           return 'container reloaded successfully'
         }
         return 'failed to reload container'
       } catch (ex) {
+        console.log(`reload ex: ${ex}`)
         if (ex instanceof FetchError) {
           throw ex.message
         }
@@ -37,17 +44,23 @@ export class DockerEngine implements IEngine {
     return 'failed to get container id'
   }
   async restart(): Promise<string> {
+    console.log(`111 ${this.container_name}`)
     const container_id = await this.getContainerId(this.container_name)
+    console.log(`222 ${container_id}`)
     if (container_id) {
       try {
+        console.log(`222 cont restart`)
         const resp = await this.docker(`/containers/${container_id}/restart`, {
           method: 'POST',
         })
+        console.log(`333`)
+        console.log(`333 ${resp}`)
         if (resp.status === 204) {
           return 'container restarted successfully'
         }
         return 'failed to restart container'
       } catch (ex) {
+        console.log(`ex: ${ex}`)
         if (ex instanceof FetchError) {
           throw ex.message
         }
@@ -61,6 +74,7 @@ export class DockerEngine implements IEngine {
     const data = await this.docker<ContainerInfo[]>(
       `/containers/json?filters={"name":["^${container_name}$"]}`
     )
+    console.log(data)
     if (data.length) this.container_id = data[0].Id
     return this.container_id
   }
